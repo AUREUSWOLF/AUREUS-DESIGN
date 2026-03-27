@@ -9,13 +9,20 @@ permissions:
   pages: write
   id-token: write
 
+# Best practice – prevents multiple deploys clashing
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
-      # ←←← THIS IS THE FIX: Install pnpm first
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -25,7 +32,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'   # Important: uses your pnpm-lock.yaml
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
